@@ -1,0 +1,36 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.ipynb_checkpoints/
+build/
+dist/
+
+# Downloaded corpus data and HF caches (NOT source; re-fetched from HuggingFace
+# or local paths at runtime). Keep these out of git -- they are large and not ours.
+.cache/
+experiment/.cache/
+data/
+*.parquet
+*.pkl
+
+# skia-canvas / node (if any figure tooling lands here)
+node_modules/
+
+# Env and secrets
+.env
+.venv/
+venv/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Unreferenced exploratory probes: excluded from the anonymous release snapshot
+# (kept locally; reversible). One hard-codes a personal HF namespace.
+experiment/_w4_inspect_flora.py
+experiment/w4_flora_probe.py
+experiment/w4_flora_variance.py
+experiment/efficiency_probe.py
