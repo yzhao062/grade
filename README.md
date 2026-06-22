@@ -1,17 +1,39 @@
+<div align="center">
+
 # GRADE
 
-Reference code for **GRADE: Graph Representation of Agent Dependency and
-Execution**, a two-layer graph representation of LLM-agent runs. Every run is one
-typed graph over its step nodes with two edge layers: an **execution** layer
-(what ran in what order, read from the trace for free) and a **dependency** layer
-(what each step relied on, graded by how each edge is known: observed, declared,
-or inferred).
+**A two-layer graph representation of LLM-agent runs.**
 
-The representation is the contribution. This repository holds the representation,
-a layered structural-feature module, and the experiments that demonstrate the
-representation's value: run-failure prediction across corpora, cross-class
-transfer, an observed-vs-inferred gate, off-the-shelf graph-network baselines,
-and step-level fault localization.
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+![Python](https://img.shields.io/badge/python-3.10%2B-blue.svg)
+![Status](https://img.shields.io/badge/status-under%20review-orange.svg)
+
+[Install](#install) · [Quickstart](#quickstart) · [What It Finds](#what-it-finds) · [API](#public-api-grade) · [Experiments](#experiments)
+
+</div>
+
+<p align="center">
+  <img src="assets/grade_overview.png" alt="GRADE models one run as one typed graph with an execution layer read from the trace and a source-graded dependency layer" width="92%">
+</p>
+
+Can one graph represent every kind of agent run? A trace records what each step
+did, never what it relied on, the state it read, or the results it reused.
+**GRADE** (Graph Representation of Agent Dependency and Execution) recovers that
+missing layer. It models any run as one typed graph over its step nodes with two
+edge layers:
+
+- 🟦 **Execution layer**: what ran in what order, read from the trace for free (`emits`, `handoff_to`).
+- 🟧 **Dependency layer**: what each step relied on, rarely logged, so each edge is graded by how it is known, **observed**, **declared**, or **inferred** (`depends_on`).
+
+One representation, and each layer earns its place. This repository holds the
+representation, a layered structural-feature module, and the experiments that
+demonstrate its value: run-failure prediction across corpora, leave-one-corpus-out
+transfer, an observed-vs-inferred gate, off-the-shelf graph-network baselines, and
+step-level fault localization.
+
+> [!NOTE]
+> Datasets are not bundled. Most corpora stream from the Hugging Face Hub at
+> runtime; two need a local path. See [Data](#data).
 
 ## Install
 
@@ -44,15 +66,45 @@ print(characterize(G))            # node/edge/layer counts, dependency depth
 names, values = feature_vector(G) # layered structural features
 ```
 
+The figure at the top is built by this same API. Regenerate all three figures
+with `python assets/make_figures.py` (needs `matplotlib`).
+
+## What It Finds
+
+Two demonstrated capabilities, one per layer: the **dependency layer** predicts
+failure where run size is weak, and the **execution layer** localizes where a run
+fails.
+
+### Failure Prediction Transfers Across Agent Classes
+
+<p align="center">
+  <img src="assets/transfer.png" alt="Leave-one-corpus-out transfer ROC-AUC: size-normalized dependency clears chance on all six held-out corpora; run size drops below chance on tau-bench and SWE-Gym" width="72%">
+</p>
+
+Fit on five corpora and scored on the sixth, the size-normalized dependency
+signal stays above chance on every held-out class. Run size, by contrast, inverts
+below chance on tau-bench and SWE-Gym. Dependency structure carries failure
+information that run size alone misses.
+
+### The Execution Layer Localizes the Faulting Step
+
+<p align="center">
+  <img src="assets/localization.png" alt="Step-level fault localization on Who&When: execution-graph structure beats an early-fault position prior on top-1, top-3, and MRR" width="64%">
+</p>
+
+On Who&When multi-agent failures, ranking steps by execution-graph structure
+beats an early-fault position prior on top-1, top-3, and MRR, and both clear the
+random floor.
+
 ## Public API (`grade`)
 
-- `build_graph(steps, *, dependency="full_context", shared_resource=True)` — build
+- `build_graph(steps, *, dependency="full_context", shared_resource=True)`: build
   the typed two-layer graph. `dependency` is `"full_context"` (full-history
   inferred), `"chain"`, or `"explicit"` (observed, from logged accesses).
-- `dependency_dag(G)` — the `depends_on` projection as a simple DAG.
-- `characterize(G)` — per-graph structural properties.
-- `downstream_reach(G, step_idx)` — transitive blast radius of a step.
-- `layered_features(G)` / `feature_vector(G, *, layer=...)` — layered structural
+- `dependency_dag(G)`: the `depends_on` projection as a simple DAG.
+- `characterize(G)`: per-graph structural properties.
+- `downstream_reach(G, step_idx)`: transitive blast radius of a step.
+- `layered_features(G)` / `feature_vector(G, *, layer=...)`: layered structural
   features. `layer` picks the column set: `"flat"` (size/counts), `"exec"`
   (flat + execution topology), `"full"` (flat + exec + raw dependency counts). The
   paper's main "beyond run size" result uses `"flatdep"` (flat + size-normalized
@@ -62,7 +114,8 @@ names, values = feature_vector(G) # layered structural features
 
 ## Experiments
 
-Each script prints its results to stdout (most as ROC-AUC tables). Run from the repository root:
+Each script prints its results to stdout (most as ROC-AUC tables). Run from the
+repository root:
 
 ```
 python experiment/<script>.py
@@ -80,10 +133,17 @@ python experiment/<script>.py
 | `agent_failure_localization.py` | step-level fault localization: execution structure beats an early-fault prior |
 | `diagnose_layers.py` | layer-by-layer diagnosis |
 
+<details>
+<summary>Corpus loaders and a dropped corpus</summary>
+
+<br>
+
 Corpus loaders build the two-layer graph per run from each trace:
 `agent_graph_tau_bench.py`, `agent_graph_tau2_bench.py`, `agent_graph_swe_agent.py`,
 `agent_graph_swegym.py`, `agent_graph_openhands.py`, `agent_reward_bench.py`.
 `agent_graph_scienceworld.py` is a dropped corpus, kept for the record.
+
+</details>
 
 ## Data
 
@@ -95,7 +155,7 @@ runtime (set `HF_TOKEN` for higher rate limits). Two need a local path:
 
 ## License
 
-MIT. See `LICENSE`.
+MIT. See [`LICENSE`](LICENSE).
 
 ## Citation
 
