@@ -54,8 +54,32 @@ def _rho(G):
     return (nd / comb(n, 2)) if n >= 2 else 0.0
 
 
+def _dep_spans(G):
+    return [G.nodes[u]["idx"] - G.nodes[v]["idx"]
+            for u, v, d in G.edges(data=True) if d.get("etype") == "depends_on"]
+
+
+def _span_stats(G):
+    spans = _dep_spans(G)
+    n_steps = sum(1 for _, d in G.nodes(data=True)
+                  if d.get("ntype") in ("decision", "tool_call"))
+    denom = max(n_steps - 1, 1)
+    if not spans:
+        return {"med": float("nan"), "max": float("nan"), "med_rel": float("nan"),
+                "max_rel": float("nan"), "share_ge10": float("nan"), "has_edge": 0}
+    med = float(np.median(spans))
+    mx = float(max(spans))
+    return {"med": med, "max": mx, "med_rel": med / denom, "max_rel": mx / denom,
+            "share_ge10": float(np.mean([s >= 10 for s in spans])), "has_edge": 1}
+
+
+def _span_summary(rows, key, op=np.median):
+    vals = [r[key] for r in rows if r["has_edge"]]
+    return float(op(vals)) if vals else float("nan")
+
+
 def _corpus(name, pairs):
-    flat, deponly, obs, inf, y, rho_obs, rho_inf = [], [], [], [], [], [], []
+    flat, deponly, obs, inf, y, rho_obs, rho_inf, span_obs = [], [], [], [], [], [], [], []
     for steps, label in pairs:
         if len(steps) < 2:
             continue
@@ -68,6 +92,7 @@ def _corpus(name, pairs):
         y.append(label)
         rho_obs.append(_rho(g_obs))
         rho_inf.append(_rho(g_inf))
+        span_obs.append(_span_stats(g_obs))
     return {
         "name": name,
         "flat": np.array(flat, float),
@@ -77,6 +102,7 @@ def _corpus(name, pairs):
         "y": np.array(y),
         "rho_obs": float(np.median(rho_obs)) if rho_obs else float("nan"),
         "rho_inf": float(np.median(rho_inf)) if rho_inf else float("nan"),
+        "span_obs": span_obs,
     }
 
 
@@ -151,14 +177,44 @@ def load_all():
     C["tau2-bench"] = _corpus("tau2-bench", (
         (rec["steps"], rec["label"]) for rec in tau2.load_runs()))
     print("loading web...", flush=True)
-    C["web"] = _corpus("web", (
-        (web.to_steps(rec["steps"]), rec["label"]) for rec in web.load_runs(web.N_RUNS)))
+    try:
+        C["web"] = _corpus("web", (
+            (web.to_steps(rec["steps"]), rec["label"]) for rec in web.load_runs(web.N_RUNS)))
+    except Exception as exc:
+        print("web unavailable for this run: %s: %s" % (type(exc).__name__, exc), flush=True)
+        C["web"] = _corpus("web", ())
     return C
 
 
 def main():
     C = load_all()
-    order = ["tau-bench", "SWE-agent", "SWE-Gym", "OpenHands", "tau2-bench", "web"]
+    all_order = ["tau-bench", "SWE-agent", "SWE-Gym", "OpenHands", "tau2-bench", "web"]
+    display = {"web": "AgentRewardBench"}
+    skipped = [nm for nm in all_order if len(C[nm]["y"]) == 0]
+    order = [nm for nm in all_order if nm not in skipped]
+    if skipped:
+        print("\nskipping empty corpora: %s"
+              % ", ".join(display.get(nm, nm) for nm in skipped), flush=True)
+
+    # Span medians are reproducible under a fixed interpreter hash seed (PYTHONHASHSEED);
+    # the tau2-bench loader is otherwise hash-order sensitive in which runs it returns.
+    print("\n=== OBSERVED DEPENDENCY SPAN ===", flush=True)
+    print("%-16s %9s %9s %9s %9s %10s %10s"
+          % ("corpus", "med", "med_rel", "med_max", "med_max_rel", "share>=10", "no_edge"),
+          flush=True)
+    for nm in order:
+        rows = C[nm]["span_obs"]
+        no_edge = (1.0 - float(np.mean([r["has_edge"] for r in rows]))
+                   if rows else float("nan"))
+        print("%-16s %9.3f %9.3f %9.3f %9.3f %10.3f %10.3f"
+              % (display.get(nm, nm),
+                 _span_summary(rows, "med"),
+                 _span_summary(rows, "med_rel"),
+                 _span_summary(rows, "max"),
+                 _span_summary(rows, "max_rel"),
+                 _span_summary(rows, "share_ge10", np.mean),
+                 no_edge),
+              flush=True)
 
     print("\n=== WITHIN-CORPUS (5-seed 5-fold ROC-AUC) ===", flush=True)
     print("%-12s %6s %8s %10s %10s %8s %8s" % ("corpus", "flat", "dep-only", "+dep(obs)",
