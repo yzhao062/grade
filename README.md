@@ -6,7 +6,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 ![Python](https://img.shields.io/badge/python-3.10%2B-blue.svg)
-![Status](https://img.shields.io/badge/status-under%20review-orange.svg)
+![Status](https://img.shields.io/badge/status-arXiv%202606.22741-blue.svg)
 
 [Install](#install) · [Quickstart](#quickstart) · [What It Finds](#what-it-finds) · [API](#public-api-grade) · [Experiments](#experiments)
 
@@ -161,9 +161,10 @@ MIT. See [`LICENSE`](LICENSE).
 
 ```bibtex
 @misc{grade2026,
-  title  = {{GRADE}: Graph Representation of Agent Dependency and Execution},
-  author = {Anonymous},
+  title  = {{GRADE}: Graph Representation of {LLM} Agent Dependency and Execution},
+  author = {Yue Zhao},
   year   = {2026},
-  note   = {Under review}
+  eprint = {2606.22741},
+  archivePrefix = {arXiv}
 }
 ```

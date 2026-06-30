@@ -15,7 +15,7 @@ ROC-AUC, 5 seeds × 5-fold CV, label 1 = failed run. Feature groups (`grade/feat
 
 ## Finding 1 — the current exec layer is a protocol-shape artifact on single-agent corpora
 
-(Corrected after review. The earlier draft claimed the exec features "collapse to a
+(Correction: The earlier draft claimed the exec features "collapse to a
 single actor" with `agent_gini=0, n_agent_transitions=0, max_agent_outdeg=n_steps`. That
 mis-stated the mechanism: the loaders assign decision steps to `agent` and tool-call steps
 to `env`, and `grade.features.layered_features` counts BOTH in `agent_seq`. So the exec
@@ -98,7 +98,7 @@ The three "helps" corpora are the three with the weakest flat baseline (0.58-0.6
 nulls are the two with the strongest (0.70-0.77). Reported as an observed pattern, not a
 universal threshold.
 
-## Proposed changes (for review)
+## Notes
 
 1. **Adopt size-normalized dependency features** in `features.py` (principled: the thesis is
    "beyond size"; raw counts at r=0.96 with size cannot test it). Report `flat` vs

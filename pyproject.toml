@@ -9,7 +9,7 @@ description = "A two-layer graph representation of LLM-agent runs (execution and
 readme = "README.md"
 requires-python = ">=3.10"
 license = { text = "MIT" }
-authors = [{ name = "Anonymous" }]
+authors = [{ name = "Yue Zhao" }]
 keywords = ["agents", "graph", "failure-prediction", "fault-localization", "llm"]
 classifiers = [
     "Programming Language :: Python :: 3",
