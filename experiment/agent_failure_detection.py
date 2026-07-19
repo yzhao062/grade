@@ -236,7 +236,7 @@ def main():
           "adds failure signal over run size alone (flat vs flat+dep). In these four "
           "observed-dependency corpora, it does on two and not on the other two, and the "
           "split lines up with how strong size already is: dependency structure helps on "
-          "tau-bench and SWE-agent, where the flat baseline is weak (AUC ~0.58-0.63), and "
+          "tau-bench and SWE-agent, where the flat baseline is weak (AUC ~0.62-0.63), and "
           "is null on OpenHands and AgentRewardBench, where run size alone already "
           "predicts failure (AUC ~0.70-0.77). We report this as an observed pattern in "
           "these corpora, not a universal threshold. The nested exec/full numbers are a "

@@ -48,7 +48,12 @@ def _ensure_files():
     paths = []
     for m in MODELS:
         try:
-            paths.append(hf_hub_download(REPO, f"{m}.jsonl", repo_type="dataset"))
+            # Pin to the 2026-07-05 converter-fix commit so the corpus is frozen and
+            # cannot silently drift if upstream `main` is regenerated again (that fix
+            # swapped the correct base-model runs into the gpt-4.1 and Kimi-K2 files).
+            paths.append(hf_hub_download(
+                REPO, f"{m}.jsonl", repo_type="dataset",
+                revision="382e57d1784b55c5155f4ef394ef48f1c747a287"))
         except Exception as exc:  # pragma: no cover
             print(f"  (skip {m}: {exc})")
     if not paths:

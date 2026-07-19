@@ -56,6 +56,13 @@ quantity the paper's "signal beyond size" thesis is actually about.
 | OpenHands (strong coding, 52% fail) | 0.698 | 0.695 | −0.004 | 1/5 |
 | AgentRewardBench (web, 67% fail) | 0.765 | 0.759 | −0.007 | 1/5 |
 
+> **Pre-fix data note (2026-07-19).** The tau-bench numbers in this section (the `0.583 / 0.614 /
+> +0.031` row above, and the `+0.031` restated in the prose below) predate the 2026-07-05 upstream
+> correction of `AgentSuite/tau-bench-trajectories` (commit `382e57d`, which fixed mislabeled gpt-4.1
+> and Kimi-K2-Instruct base-model runs). They are the as-submitted GRADE analysis on the pre-fix
+> corpus; the loader is now pinned to the corrected commit. Regenerate this row before reusing it. The
+> other four corpora are unaffected.
+
 ## Answer: it is BOTH, and they are now separable
 
 - **Not a code bug.** Loaders produce real, non-degenerate dependency edges (SWE dep_depth
